@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:aop="http://www.springframework.org/schema/aop"
+	xmlns:tx="http://www.springframework.org/schema/tx"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans 
+	http://www.springframework.org/schema/beans/spring-beans.xsd
+	http://www.springframework.org/schema/context
+	http://www.springframework.org/schema/context/spring-context.xsd
+	http://www.springframework.org/schema/aop
+	http://www.springframework.org/schema/aop/spring-aop.xsd
+	http://www.springframework.org/schema/tx 
+	http://www.springframework.org/schema/tx/spring-tx.xsd">
+	
+	<bean id="securityManager" class="org.apache.shiro.web.mgt.DefaultWebSecurityManager">
+		<property name="realm" ref="authRealm" />
+		<property name="cacheManager" ref="shiroEhcacheManager"/>
+	</bean>
+	
+	<bean id="authRealm" class="cn.itcast.jk.action.shiro.AuthRealm">
+		<property name="userService" ref="userService" />
+		<property name="credentialsMatcher" ref="customCredentialsMatcher" />
+	</bean>
+	
+	<bean id="customCredentialsMatcher" class="cn.itcast.jk.action.shiro.CustomCredentialsMatcher"/>
+	
+	 <!-- filter-name这个名字的值来自于web.xml中filter的名字 -->
+	<bean id="shiroFilter" class="org.apache.shiro.spring.web.ShiroFilterFactoryBean">
+		<property name="securityManager" ref="securityManager" />
+		<!--登录页面 -->
+		<property name="loginUrl" value="/index.jsp"></property>
+		<!-- 登录成功后，暂时没用到 -->
+		<property name="successUrl" value="/home.action"></property>
+		<property name="filterChainDefinitions">
+			<!-- /**代表下面的多级目录也过滤 -->
+			<value>
+				/index.jsp* = anon
+				/home* = anon
+				/sysadmin/login/login.jsp* = anon
+				/sysadmin/login/logout.jsp* = anon
+				/login* = anon
+				/logout* = anon
+				/components/** = anon
+				/css/** = anon
+				/images/** = anon
+				/js/** = anon
+				/make/** = anon
+				/skin/** = anon
+				/stat/** = anon
+				/ufiles/** = anon
+				/validator/** = anon
+				/resource/** = anon
+				/sysadmin/deptAction_* = perms["部门管理"]
+				/** = authc
+				/*.* = authc
+			</value>
+		</property>
+		<property name="unauthorizedUrl" value="/unauthorized.jsp"></property>
+	</bean>
+	
+	<bean id="shiroEhcacheManager" class="org.apache.shiro.cache.ehcache.EhCacheManager">
+        <property name="cacheManagerConfigFile" value="classpath:ehcache-shiro.xml"/>
+    </bean>
+	
+</beans>

@@ -1,0 +1,216 @@
+<%@ page language="java" pageEncoding="UTF-8"%>
+<%@ include file="../baselist.jsp"%>
+<%@ taglib uri="http://java.sun.com/jsp/jstl/fmt" prefix="fmt" %>
+<%@taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"  %>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+	<title></title>
+	<script type="text/javascript" src="${ctx }/js/jquery-1.4.4.js"></script>
+	<script>
+	     function isOnlyChecked(){
+	    	 var checkBoxArray = document.getElementsByName('id');
+				var count=0;
+				for(var index=0; index<checkBoxArray.length; index++) {
+					if (checkBoxArray[index].checked) {
+						count++;
+					}	
+				}
+			//jquery
+			//var count = $("[input name='id']:checked").size();
+			if(count==1)
+				return true;
+			else
+				return false;
+	     }
+		// 	     查看
+	     function toView(){
+	    	 if(isOnlyChecked()){
+	    		 formSubmit('feedbackAction_toview','_self');
+	    	 }else{
+	    		 alert("请先选择一项并且只能选择一项，再进行操作！");
+	    	 }
+	     }
+		
+		
+	     //实现更新
+	     function toUpdate(){
+	    	 var checkBoxArray = document.getElementsByName('id');
+				var count=0;
+				for(var index=0; index<checkBoxArray.length; index++) {
+					if (checkBoxArray[index].checked) {
+						 var span = checkBoxArray[index].nextSibling.nextSibling;
+						 var qd = span.lastChild.nodeValue;
+						 if(qd==1){
+							count++;
+						 }
+					}	
+				}
+				
+				if(count==0){
+					 if(isOnlyChecked()){
+						 formSubmit('feedbackAction_toupdate','_self');
+			    	 }else{
+			    		 alert("请先选择一项并且只能选择一项，再进行操作！");
+			    	 }
+		    	 }else{
+		    		 alert("已处理的反馈不可修改");
+		    	 }
+	     }
+	     
+	     //处理问题
+	     function toresolve(){
+	    	 var checkBoxArray = document.getElementsByName('id');
+				var count=0;
+				for(var index=0; index<checkBoxArray.length; index++) {
+					if (checkBoxArray[index].checked) {
+						 var span = checkBoxArray[index].nextSibling.nextSibling;
+						 var qd = span.lastChild.nodeValue;
+						 if(qd==1){
+							count++;
+						 }
+					}	
+				}
+				
+				if(count==0){
+					 if(isOnlyChecked()){
+			    		 formSubmit('feedbackAction_toresolve','_self');
+			    	 }else{
+			    		 alert("请先选择一项并且只能选择一项，再进行操作！");
+			    	 }
+		    	 }else{
+		    		 alert("已处理的反馈不可重复处理");
+		    	 }
+	     }
+	     
+	      function isChecked(){
+	    	 var checkBoxArray = document.getElementsByName('id');
+				var count=0;
+				for(var index=0; index<checkBoxArray.length; index++) {
+					if (checkBoxArray[index].checked) {
+						
+						count++;
+					}	
+				}
+			//jquery
+			//var count = $("[input name='id']:checked").size();
+			if(count>=1)
+				return true;
+			else
+				return false;
+	     }
+	      
+		// 	     删除
+	     function todelete(){
+	    	 var checkBoxArray = document.getElementsByName('id');
+				var count=0;
+				for(var index=0; index<checkBoxArray.length; index++) {
+					if (checkBoxArray[index].checked) {
+						 var span = checkBoxArray[index].nextSibling.nextSibling;
+						 var qd = span.lastChild.nodeValue;
+						 if(qd==0){
+							count++;
+						 }
+					}	
+				}
+				
+	    	 if(count==0){
+	    		 
+	    	  	if(isChecked()){
+	    		  
+	    		 	formSubmit('feedbackAction_delete','_self');
+	    		 }else{
+	    		 	alert("请至少选择一项，再进行操作！");
+	    		 } 
+	    	 }else{
+	    		 alert("未处理的反馈不可删除");
+	    	 }
+	     } 
+	    
+	</script>
+	
+</head>
+
+<body>
+<form name="icform" method="post">
+
+<div id="menubar">
+<div id="middleMenubar">
+<div id="innerMenubar">
+  <div id="navMenubar">
+<ul>
+<li id="view"><a href="#" onclick="javascript:toView()">查看</a></li>
+<li id="new"><a href="#" onclick="formSubmit('feedbackAction_tocreate','_self');this.blur();">新增</a></li>
+<li id="update"><a href="#" onclick="javascript:toUpdate()">修改</a></li>
+<li id="delete"><a href="#" onclick="javascript:todelete()">删除</a></li>
+<li id="new"><a href="#" onclick="javascript:toresolve()">已处理</a></li>
+<%--<li id="new"><a href="#" onclick="formSubmit('feedbackAction_updatedown','_self');this.blur();">未解决</a></li>--%>
+</ul>
+  </div>
+</div>
+</div>
+</div>
+   
+  <div class="textbox-title">
+	<img src="${ctx }/skin/default/images/icon/folder_information.png"/>
+    意见反馈列表
+  </div> 
+  
+<div>
+
+
+<div class="eXtremeTable" >
+<table id="ec_table" class="tableRegion" width="98%" >
+	<thead>
+	<tr>
+		<td class="tableHeader"><input type="checkbox" name="selid" onclick="checkAll('id',this)"></td>
+		<td class="tableHeader">序号</td>
+		<td class="tableHeader">提议人</td>
+		<td class="tableHeader">意见主题</td>
+		<td class="tableHeader">意见分类</td>
+		<td class="tableHeader">提议日期</td>
+		<td class="tableHeader">是否处理</td>
+	</tr>
+	</thead>
+	<tbody class="tableBody" >
+	${page.links}
+	<c:forEach items="${results}" var="o" varStatus="status">
+	<tr class="odd" onmouseover="this.className='highlight'" onmouseout="this.className='odd'" >
+		<td>
+			<input type="checkbox" name="id" value="${o.id}"/>
+			<span style="display: none;">${o.state}</span>
+			<!-- 判断状态的隐藏标签 -->
+			<input id="state" type="hidden" value="${o.state}"/>
+		</td>
+		
+		<td>${status.index+1}</td>
+		<td>
+		<a href="feedbackAction_toview?id=${o.id}">${o.inputBy}</a>
+		</td>
+		<td>${o.title}</td>
+		
+		<td>
+		<!-- 1管理  2安全  3建议  4其他 -->
+			<c:if test="${o.classType==0}">未填写</c:if>
+			<c:if test="${o.classType==1}">管理意见</c:if>
+			<c:if test="${o.classType==2}">安全意见</c:if>
+			<c:if test="${o.classType==3}">建议意见</c:if>
+			<c:if test="${o.classType==4}">其他意见</c:if>
+		</td>
+		<td>${o.inputTime}</td>
+		<td><!-- 0未处理  1已处理 -->
+		<c:if test="${o.state==0}"><font color="red">未处理</font></c:if>
+		<c:if test="${o.state==1}"><font color="green">已处理</font></c:if>
+		</td>
+	</tr>
+	</c:forEach>
+	</tbody>
+</table>
+</div>
+ 
+</div>
+ 
+ 
+</form>
+</body>
+</html>
+

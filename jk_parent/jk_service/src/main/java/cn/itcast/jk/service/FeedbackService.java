@@ -1,0 +1,28 @@
+package cn.itcast.jk.service;
+
+import java.io.Serializable;
+import java.util.Collection;
+import java.util.List;
+
+import cn.itcast.jk.domain.Feedback;
+import cn.itcast.jk.utils.Page;
+
+/**
+ * @Description:	Feedback
+ * @Author:			24K纯帅
+ * @Company:		
+ * @CreateDate:		2017-6-9 17:18:48
+ */
+
+public interface FeedbackService {
+
+	public List<Feedback> find(String hql, Class<Feedback> entityClass, Object[] params);
+	public Feedback get(Class<Feedback> entityClass, Serializable id);
+	public Page findPage(String hql, Page page, Class<Feedback> entityClass, Object[] params);
+	
+	public void saveOrUpdate(Feedback entity);
+	public void saveOrUpdateAll(Collection<Feedback> entitys);
+	
+	public void deleteById(Class<Feedback> entityClass, String id);
+	public void delete(Class<Feedback> entityClass, String[] ids);
+}

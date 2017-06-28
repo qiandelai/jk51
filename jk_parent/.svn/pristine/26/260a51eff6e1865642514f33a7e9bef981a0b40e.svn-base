@@ -1,0 +1,74 @@
+<%@ page language="java" pageEncoding="UTF-8"%>
+<%@ include file="../base.jsp"%>
+<%@taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"  %>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+	<title></title>
+	<script type="text/javascript" src="${ctx }/js/datepicker/WdatePicker.js"></script>
+</head>
+
+<body>
+<form name="icform" method="post">
+	<input type="hidden" name="id" value="${id}"/>
+
+<div id="menubar">
+<div id="middleMenubar">
+<div id="innerMenubar">
+  <div id="navMenubar">
+<ul>
+<li id="save"><a href="#" onclick="formSubmit('feedbackAction_update','_self');this.blur();">保存</a></li>
+<li id="back"><a href="#" onclick="history.go(-1);">返回</a></li>
+</ul>
+  </div>
+</div>
+</div>
+</div>
+   
+  <div class="textbox-title">
+	<img src="${ctx }/skin/default/images/icon/note_edit.png"/>
+   修改意见反馈
+  </div> 
+  
+
+ 
+    <div>
+		<table class="commonTable" cellspacing="1">
+			 <tr>
+	            <td class="columnTitle">提议人</td>
+	            <td class="tableContent"><input type="text" name="inputBy" value="${inputBy}"/></td>
+	            <td class="columnTitle">提议时间</td>
+	           <td class="tableContent"><input type="text" name="inputTime" value="${inputTime}"/></td>
+	        </tr>	
+	        <tr>
+	            <td class="columnTitle">意见主题</td>
+	            <td class="tableContent"><input type="text" name="title" value="${title}"/></td>
+	            <td class="columnTitle">联系电话</td>
+	             <td class="tableContent"><input type="text" name="tel" value="${tel}"/></td>
+	        </tr>	
+			 <tr>
+	            <td class="columnTitle">意见分类</td><%--1管理   2安全   3建议   4其他：--%>
+	            <td class="tableContent">
+					<select name="classType"><%--添加if标签${classType}比较是否相等默认选--%>
+						<option value="0" <c:if test="${classType==0}">selected</c:if> >--请选择--</option>
+						<option value="1" <c:if test="${classType==1}">selected</c:if> >管理意见</option>
+						<option value="2" <c:if test="${classType==2}">selected</c:if> >安全意见</option>
+						<option value="3" <c:if test="${classType==3}">selected</c:if> >建议意见</option>
+						<option value="4" <c:if test="${classType==4}">selected</c:if> >其他意见</option>
+				    </select>
+				</td>
+	            <td class="columnTitle">是否公开</td><%--0不公开1公开：--%>
+	            <td class="tableContentAuto"><%--添加if标签${isShare}比较是否相等默认选--%>
+					 <input type="radio" name="isShare" value="1" <c:if test="${isShare==1}">checked</c:if>/>公开&nbsp;
+					 <input type="radio" name="isShare" value="0" <c:if test="${isShare==0}">checked</c:if>/>不公开
+				</td>
+	        </tr>	
+			 <tr>
+			 <td class="columnTitle">意见内容:</td>
+	            <td class="tableContent"><textarea name="content" rows="50" cols="50" style="height: 50px">${content}</textarea></td>
+	        </tr>	
+		</table>
+	</div>
+</form>
+</body>
+</html>
+

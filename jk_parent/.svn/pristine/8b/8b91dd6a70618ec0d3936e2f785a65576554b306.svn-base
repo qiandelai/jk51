@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE hibernate-mapping PUBLIC 
+    "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+    "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+<hibernate-mapping package="cn.itcast.jk.domain">
+	<class name="Board" table="BOARD_B" dynamic-insert="true" dynamic-update="true">
+		<id name="id" column="ID">
+			<generator class="uuid"/>
+		</id>
+		<property name="content" column="CONTENT"/>
+		<property name="updateTime" column="UPDATE_TIME"/>
+		
+		<!-- 留言和用户，多对一 -->
+		<many-to-one name="user" class="cn.itcast.jk.domain.User" column="USER_ID"/>
+	</class>
+</hibernate-mapping>    

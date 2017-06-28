@@ -1,0 +1,203 @@
+package cn.itcast.jk.action.sysadmin;
+
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
+import org.apache.struts2.ServletActionContext;
+
+import com.opensymphony.xwork2.ModelDriven;
+
+import cn.itcast.jk.action.BaseAction;
+import cn.itcast.jk.domain.Dept;
+import cn.itcast.jk.domain.Role;
+import cn.itcast.jk.domain.User;
+import cn.itcast.jk.domain.UserInfo;
+import cn.itcast.jk.service.DeptService;
+import cn.itcast.jk.service.RoleService;
+import cn.itcast.jk.service.UserService;
+import cn.itcast.jk.utils.Encrypt;
+import cn.itcast.jk.utils.MD5Utils;
+import cn.itcast.jk.utils.Page;
+import cn.itcast.jk.utils.SetDataUtils;
+import cn.itcast.jk.utils.SysConstant;
+
+public class UserAction extends BaseAction implements ModelDriven<User>{
+	private User model = new User();
+	public User getModel() {
+		return model;
+	}
+	private UserService userService;
+	public void setUserService(UserService userService) {
+		this.userService = userService;
+	}
+	private DeptService deptService;
+	public void setDeptService(DeptService deptService) {
+		this.deptService = deptService;
+	}
+	private RoleService roleService;
+	public void setRoleService(RoleService roleService) {
+		this.roleService = roleService;
+	}
+	private Page page = new Page();
+	public Page getPage() {
+		return page;
+	}
+	public void setPage(Page page) {
+		this.page = page;
+	}
+	private String[] roleIds;
+	public void setRoleIds(String[] roleIds) {
+		this.roleIds = roleIds;
+	}
+	/**
+	 * 分页查询所有用户
+	 */
+	public String list() throws Exception {
+		userService.findPage("from User where state=1", page, User.class, null);
+		page.setUrl("userAction_list");
+		super.push(page);
+		return "list";
+	}
+	/**
+	 * 查看用户
+	 */
+	public String toview() throws Exception {
+		User obj = userService.get(User.class, model.getId());
+		super.push(obj);
+		return "toview";
+	}
+	/**
+	 * 到新增用户页面
+	 */
+	public String tocreate() throws Exception {
+		List<User> userList = userService.find("from User where state=1", User.class, null);
+		super.put("userList", userList);
+		List<Dept> deptList = deptService.find("from Dept where state=1", Dept.class, null);
+		super.put("deptList", deptList);
+		return "tocreate";
+	}
+	/**
+	 * 新增用户
+	 * @return
+	 * @throws Exception
+	 */
+	public String insert() throws Exception {
+		userService.saveOrUpdate(model);
+		return "alist";
+	}
+	/**
+	 * 到修改用户页面
+	 */
+	public String toupdate() throws Exception {
+		List<Dept> deptList = deptService.find("from Dept where state=1", Dept.class, null);
+		super.put("deptList", deptList);
+		User user = userService.get(User.class, model.getId());
+		super.push(user);
+		return "toupdate";
+	}
+	/**
+	 * 修改用户
+	 */
+	public String update() throws Exception {
+		User obj = userService.get(User.class, model.getId());
+		SetDataUtils.set(model, obj);
+		userService.saveOrUpdate(obj);
+		return "alist";
+	}
+	/**
+	 * 删除用户
+	 * @return
+	 * @throws Exception
+	 */
+	public String delete() throws Exception {
+		String[] ids = model.getId().split(", ");
+		userService.delete(User.class, ids);
+		return "alist";
+	}
+	/**
+	 * 到给用户分配角色的页面
+	 * @return
+	 * @throws Exception
+	 */
+	public String torole() throws Exception {
+		List<Role> list = roleService.find("from Role", Role.class, null);
+		super.put("roleList", list);
+		User user = userService.get(User.class, model.getId());
+		super.push(user);
+		Set<Role> roles = user.getRoles();
+		StringBuilder sb = new StringBuilder();
+		for (Role role : roles) {
+			sb.append(role.getName()).append(",");
+		}
+		super.put("userRoleStr", sb.toString());
+		return "torole";
+	}
+	/**
+	 * 给用户分配角色
+	 * @return
+	 * @throws Exception
+	 */
+	public String role() throws Exception {
+		User user = userService.get(User.class, model.getId());
+		Set<Role> roles = new HashSet<>();
+		for (String id : roleIds) {
+			Role role = roleService.get(Role.class, id);
+			roles.add(role);
+		}
+		user.setRoles(roles);
+		userService.saveOrUpdate(user);
+		return "alist";
+	}
+	/**
+	 * 到验证用户密码的页面
+	 * @return
+	 * @throws Exception
+	 */
+	public String toverify() throws Exception {
+		String info = ServletActionContext.getRequest().getParameter("info");
+		if("1".equals(info)){
+			ServletActionContext.getRequest().setAttribute("info", "密码错误请重试");
+		}
+		return "toverify";
+	}
+	/**
+	 * 验证用户密码
+	 * @return
+	 * @throws Exception
+	 */
+	public String verify() throws Exception {
+		User user = (User) session.get(SysConstant.CURRENT_USER_INFO);
+		String realPass = user.getPassword();
+		String verifyPass = model.getPassword();
+		verifyPass = Encrypt.md5(verifyPass, user.getUserName());
+		if(realPass.equals(verifyPass)){
+			//ServletActionContext.getResponse().getWriter().write("1");
+			User u = userService.get(User.class, user.getId());
+			super.push(u);
+			return "verifySuccess";
+		}else{
+			//ServletActionContext.getResponse().getWriter().write("0");
+			return "verifyFail";
+		}
+	}
+	/**
+	 * 修改个人信息
+	 * @return
+	 * @throws Exception
+	 */
+	public String updateSelf() throws Exception {
+		User databaseUser = userService.get(User.class, model.getId());
+		UserInfo databaseUserInfo = databaseUser.getUserInfo();
+		UserInfo formUserInfo = model.getUserInfo();
+		SetDataUtils.set(formUserInfo, databaseUserInfo);
+		model.setUserInfo(databaseUserInfo);
+		
+		String jiami = Encrypt.md5(model.getPassword(), databaseUser.getUserName());
+		model.setPassword(jiami);
+		
+		SetDataUtils.set(model, databaseUser);
+		userService.saveOrUpdate(databaseUser);
+		return "updateSelf";
+	}
+}

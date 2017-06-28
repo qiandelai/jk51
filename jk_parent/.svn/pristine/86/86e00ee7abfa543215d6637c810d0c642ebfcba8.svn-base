@@ -1,0 +1,223 @@
+package cn.itcast.jk.action.cargo;
+
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.List;
+
+import javax.servlet.http.HttpServletResponse;
+
+import org.apache.struts2.ServletActionContext;
+
+import com.opensymphony.xwork2.ModelDriven;
+
+import cn.itcast.jk.action.BaseAction;
+import cn.itcast.jk.domain.Contract;
+import cn.itcast.jk.domain.ContractProduct;
+import cn.itcast.jk.domain.User;
+import cn.itcast.jk.service.ContractProductService;
+import cn.itcast.jk.service.ContractService;
+import cn.itcast.jk.utils.Page;
+import cn.itcast.jk.utils.SetDataUtils;
+import cn.itcast.jk.utils.SysConstant;
+
+public class ContractAction extends BaseAction implements ModelDriven<Contract> {
+
+	private Contract model = new Contract();
+	public Contract getModel() {
+		return model;
+	}
+	private ContractService contractService;
+	public void setContractService(ContractService contractService) {
+		this.contractService = contractService;
+	}
+	private ContractProductService contractProductService;
+	public void setContractProductService(ContractProductService contractProductService) {
+		this.contractProductService = contractProductService;
+	}
+	private Page page = new Page();
+	public Page getPage() {
+		return page;
+	}
+	public void setPage(Page page) {
+		this.page = page;
+	}
+	
+	/**
+	 * 分页查询购销合同
+	 * @return
+	 * @throws Exception
+	 */
+	public String list() throws Exception {
+		String hql = "from Contract ";
+		//细粒度代码start
+		User user = (User) session.get(SysConstant.CURRENT_USER_INFO);
+		if(user.getUserInfo().getDegree() == 4){
+			hql += " where createBy = '"+user.getId()+"' ";
+		}else if(user.getUserInfo().getDegree() == 3){
+			hql += " where createDept = '"+user.getDept().getId()+"' ";
+		}else if(user.getUserInfo().getDegree() == 2){
+			
+		}else if(user.getUserInfo().getDegree() == 1){
+			
+		}else if(user.getUserInfo().getDegree() == 0){
+			
+		}
+		//细粒度代码end
+		hql += " order by createTime desc";
+		contractService.findPage(hql, page, Contract.class, null);
+		page.setUrl("contractAction_list");
+		super.push(page);
+		return "list";
+	}
+	/**
+	 * 到查看购销合同页面
+	 * @return
+	 * @throws Exception
+	 */
+	public String toview() throws Exception {
+		Contract contract = contractService.get(Contract.class, model.getId());
+		super.push(contract);
+		return "toview";
+	}
+	/**
+	 * 到新增购销合同页面
+	 * @return
+	 * @throws Exception
+	 */
+	public String tocreate() throws Exception {
+		return "tocreate";
+	}
+	/**
+	 * 新增购销合同
+	 * @return
+	 * @throws Exception
+	 */
+	public String insert() throws Exception {
+		//细粒度代码start
+		User user = (User) session.get(SysConstant.CURRENT_USER_INFO);
+		model.setCreateBy(user.getId());
+		model.setCreateDept(user.getDept().getId());
+		//细粒度代码end
+		contractService.saveOrUpdate(model);
+		return "alist";
+	}
+	/**
+	 * 到修改购销合同页面
+	 * @return
+	 * @throws Exception
+	 */
+	public String toupdate() throws Exception {
+		Contract contract = contractService.get(Contract.class, model.getId());
+		super.push(contract);
+		return "toupdate";
+	}
+	/**
+	 * 修改购销合同
+	 * @return
+	 * @throws Exception
+	 */
+	public String update() throws Exception {
+		Contract contract = contractService.get(Contract.class, model.getId());
+		SetDataUtils.set(model, contract);
+		contractService.saveOrUpdate(contract);
+		return "alist";
+	}
+	/**
+	 * 批量删除购销合同
+	 * @return
+	 * @throws Exception
+	 */
+	public String delete() throws Exception {
+		String[] ids = model.getId().split(", ");
+		contractService.delete(Contract.class, ids);
+		return "alist";
+	}
+	/**
+	 * 批量提交购销合同
+	 * @return
+	 * @throws Exception
+	 */
+	public String submit() throws Exception {
+		String[] ids = model.getId().split(", ");
+		contractService.updateState(ids,1);
+		return "alist";
+	}
+	/**
+	 * 批量取消购销合同
+	 * @return
+	 * @throws Exception
+	 */
+	public String cancel() throws Exception {
+		String[] ids = model.getId().split(", ");
+		contractService.updateState(ids, 0);
+		return "alist";
+	}
+	/**
+	 * 打印购销合同
+	 * @return
+	 * @throws Exception
+	 */
+	public String print() throws Exception {
+		List<ContractProduct> cpList = contractProductService.find(
+				"from ContractProduct where contract.id=? order by factoryName", 
+				ContractProduct.class, new Object[]{model.getId()});
+		Contract contract = contractService.get(Contract.class, model.getId());
+		String path = ServletActionContext.getServletContext().getRealPath("/");
+		HttpServletResponse response = ServletActionContext.getResponse();
+		ContractPrint contractPrint = new ContractPrint();
+		contractPrint.print(contract, cpList, path, response);
+		return NONE;
+	}
+	
+	//多条件查询功能实现
+	private String khName;
+	private String htNo;
+	private Date jhTime;
+	public void setKhName(String khName) {
+		this.khName = khName;
+	}
+	public void setHtNo(String htNo) {
+		this.htNo = htNo;
+	}
+	public void setJhTime(Date jhTime) {
+		this.jhTime = jhTime;
+	}
+	public String paramsSelect() throws Exception {
+		String hql = "from Contract where 1 = 1 ";
+		//细粒度代码start
+		User user = (User) session.get(SysConstant.CURRENT_USER_INFO);
+		if(user.getUserInfo().getDegree() == 4){
+			hql += " and createBy = '"+user.getId()+"' ";
+		}else if(user.getUserInfo().getDegree() == 3){
+			hql += " and createDept = '"+user.getDept().getId()+"' ";
+		}else if(user.getUserInfo().getDegree() == 2){
+			
+		}else if(user.getUserInfo().getDegree() == 1){
+			
+		}else if(user.getUserInfo().getDegree() == 0){
+			
+		}
+		
+		//加入查询条件
+		if(khName != null && !"".equals(khName.trim())){
+			hql += " and customName like '%"+khName+"%' ";
+		}
+		if(htNo != null && !"".equals(htNo.trim())){
+			hql += " and contractNo like '%"+htNo+"%' ";
+		}
+		if(jhTime != null && !"".equals(jhTime.toString().trim())){
+			//转换时间格式
+			SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+			String dateStr = dateFormat.format(jhTime);
+			hql +=" and to_char(deliveryPeriod,'yyyy-MM-dd') = '"+dateStr+"' ";
+		}
+		
+		//细粒度代码end
+		hql += " order by createTime desc";
+		contractService.findPage(hql, page, Contract.class, null);
+		page.setUrl("contractAction_list");
+		super.push(page);
+		return "list";
+		
+	}
+}

@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE struts PUBLIC
+	"-//Apache Software Foundation//DTD Struts Configuration 2.3//EN"
+	"http://struts.apache.org/dtds/struts-2.3.dtd">
+<struts>
+	<package name="stat" namespace="/stat" extends="default">
+		<action name="statChartAction_*" method="{1}" class="statChartAction">
+			<!-- 必须从此转向，因为index.html是静态页面,同一个地址浏览器会304读缓存,加了New Date()改变路径就不会有问题了,后者改成jsp页面 -->
+			<result name="factorysale">/WEB-INF/pages/stat/chart/factorysale.jsp</result>
+			<result name="factorysaleBar">/WEB-INF/pages/stat/chart/jStat.jsp?forward=factorysale</result>
+			<result name="productsale">/WEB-INF/pages/stat/chart/jStat.jsp?forward=productsale</result>
+			<result name="onlineinfo">/WEB-INF/pages/stat/chart/jStat.jsp?forward=onlineinfo</result>
+			
+			<result name="productPriceHishChart">/WEB-INF/pages/stat/chart/productPriceHighchart.jsp</result>
+			<result name="ipAccount">/WEB-INF/pages/stat/chart/ipAccount.jsp</result>
+		</action>
+	</package>
+</struts>

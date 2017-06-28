@@ -1,0 +1,359 @@
+package cn.itcast.jk.action.cargo;
+
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.Set;
+
+import org.apache.struts2.ServletActionContext;
+
+import com.alibaba.fastjson.JSON;
+import com.opensymphony.xwork2.ModelDriven;
+
+import cn.itcast.export.webservice.IEpService;
+import cn.itcast.jk.action.BaseAction;
+import cn.itcast.jk.domain.Contract;
+import cn.itcast.jk.domain.Export;
+import cn.itcast.jk.domain.ExportProduct;
+import cn.itcast.jk.domain.User;
+import cn.itcast.jk.service.ContractService;
+import cn.itcast.jk.service.ExportProductService;
+import cn.itcast.jk.service.ExportService;
+import cn.itcast.jk.utils.FastJsonUtils;
+import cn.itcast.jk.utils.Page;
+import cn.itcast.jk.utils.SetDataUtils;
+import cn.itcast.jk.utils.SysConstant;
+
+public class ExportAction extends BaseAction implements ModelDriven<Export> {
+
+	private Export model = new Export();
+
+	public Export getModel() {
+		return model;
+	}
+
+	private ExportService exportService;
+
+	public void setExportService(ExportService exportService) {
+		this.exportService = exportService;
+	}
+
+	private ContractService contractService;
+
+	public void setContractService(ContractService contractService) {
+		this.contractService = contractService;
+	}
+
+	private ExportProductService exportProductService;
+
+	public void setExportProductService(ExportProductService exportProductService) {
+		this.exportProductService = exportProductService;
+	}
+
+	private IEpService wsclient;
+
+	public void setWsclient(IEpService wsclient) {
+		this.wsclient = wsclient;
+	}
+
+	private Page page = new Page();
+
+	public Page getPage() {
+		return page;
+	}
+
+	public void setPage(Page page) {
+		this.page = page;
+	}
+
+	/**
+	 * 合同管理，查询出已经上报的合同，state=1
+	 * 
+	 * @return
+	 * @throws Exception
+	 */
+	public String contractList() throws Exception {
+		contractService.findPage("from Contract where state=1", page, Contract.class, null);
+		page.setUrl("exportAction_contractList");
+		super.push(page);
+		return "contractList";
+	}
+
+	/**
+	 * 到新增报运单页面
+	 * 
+	 * @return
+	 * @throws Exception
+	 */
+	public String tocreate() throws Exception {
+		return "tocreate";
+	}
+
+	/**
+	 * 新增报运单
+	 * 
+	 * @return
+	 * @throws Exception
+	 */
+	public String insert() throws Exception {
+		exportService.saveOrUpdate(model);
+		return "insert";
+	}
+
+	/**
+	 * 分页查询报运单
+	 * 
+	 * @return
+	 * @throws Exception
+	 */
+	public String list() throws Exception {
+		exportService.findPage("from Export", page, Export.class, null);
+		super.push(page);
+		return "list";
+	}
+
+	/**
+	 * 到查看报运单页面
+	 * 
+	 * @return
+	 * @throws Exception
+	 */
+	public String toview() throws Exception {
+		Export export = exportService.get(Export.class, model.getId());
+		super.push(export);
+		return "toview";
+	}
+
+	/**
+	 * 批量删除报运单
+	 * 
+	 * @return
+	 * @throws Exception
+	 */
+	public String delete() throws Exception {
+		String[] ids = model.getId().split(", ");
+		for (String id : ids) {
+			Export export = exportService.get(Export.class, id);
+			String[] contractIds = export.getContractIds().split(", ");
+			contractService.updateState(contractIds, 1);
+		}
+		exportService.delete(Export.class, ids);
+		return "alist";
+	}
+
+	/**
+	 * submit提交报运单
+	 * 
+	 * @return
+	 * @throws Exception
+	 */
+	public String submit() throws Exception {
+		String[] ids = model.getId().split(", ");
+		exportService.updateState(ids, 1);
+		return "alist";
+	}
+
+	/**
+	 * 取消报运单
+	 * 
+	 * @return
+	 * @throws Exception
+	 */
+	public String cancel() throws Exception {
+		String[] ids = model.getId().split(", ");
+		exportService.updateState(ids, 0);
+		return "alist";
+	}
+
+	/**
+	 * 达到修改报运单页面
+	 * 
+	 * @return
+	 * @throws Exception
+	 */
+	public String toupdate() throws Exception {
+		Export export = exportService.get(Export.class, model.getId());
+		super.push(export);
+		return "toupdate";
+	}
+
+	/**
+	 * 页面发送ajax请求，根据报运单的id获取报运单下所有商品明细，用json数据返回
+	 * 
+	 * @return
+	 * @throws Exception
+	 */
+	public String getExpoerProductByExportId() throws Exception {
+		Export export = exportService.get(Export.class, model.getId());
+		Set<ExportProduct> exportProducts = export.getExportProducts();
+		FastJsonUtils.write_json(ServletActionContext.getResponse(), exportProducts);
+		return NONE;
+	}
+
+	private String[] mr_changed;
+	private String[] mr_id;
+	private Integer[] mr_cnumber;
+	private Double[] mr_grossWeight;
+	private Double[] mr_netWeight;
+	private Double[] mr_sizeLength;
+	private Double[] mr_sizeWidth;
+	private Double[] mr_sizeHeight;
+	private Double[] mr_exPrice;
+	private Double[] mr_tax;
+
+	public void setMr_changed(String[] mr_changed) {
+		this.mr_changed = mr_changed;
+	}
+
+	public void setMr_id(String[] mr_id) {
+		this.mr_id = mr_id;
+	}
+
+	public void setMr_cnumber(Integer[] mr_cnumber) {
+		this.mr_cnumber = mr_cnumber;
+	}
+
+	public void setMr_grossWeight(Double[] mr_grossWeight) {
+		this.mr_grossWeight = mr_grossWeight;
+	}
+
+	public void setMr_netWeight(Double[] mr_netWeight) {
+		this.mr_netWeight = mr_netWeight;
+	}
+
+	public void setMr_sizeLength(Double[] mr_sizeLength) {
+		this.mr_sizeLength = mr_sizeLength;
+	}
+
+	public void setMr_sizeWidth(Double[] mr_sizeWidth) {
+		this.mr_sizeWidth = mr_sizeWidth;
+	}
+
+	public void setMr_sizeHeight(Double[] mr_sizeHeight) {
+		this.mr_sizeHeight = mr_sizeHeight;
+	}
+
+	public void setMr_exPrice(Double[] mr_exPrice) {
+		this.mr_exPrice = mr_exPrice;
+	}
+
+	public void setMr_tax(Double[] mr_tax) {
+		this.mr_tax = mr_tax;
+	}
+
+	/**
+	 * 保存修改报运单
+	 * 
+	 * @return
+	 * @throws Exception
+	 */
+	public String update() throws Exception {
+		Export export = exportService.get(Export.class, model.getId());
+		SetDataUtils.set(model, export);
+		Set<ExportProduct> exportProducts = new HashSet<>();
+		for (int i = 0; i < mr_id.length; i++) {
+			ExportProduct exportProduct = exportProductService.get(ExportProduct.class, mr_id[i]);
+			if ("1".equals(mr_changed[i])) {
+				exportProduct.setCnumber(mr_cnumber[i]);
+				exportProduct.setGrossWeight(mr_grossWeight[i]);
+				exportProduct.setNetWeight(mr_netWeight[i]);
+				exportProduct.setSizeLength(mr_sizeLength[i]);
+				exportProduct.setSizeWidth(mr_sizeWidth[i]);
+				exportProduct.setSizeHeight(mr_sizeHeight[i]);
+				exportProduct.setExPrice(mr_exPrice[i]);
+				exportProduct.setTax(mr_tax[i]);
+			}
+			exportProducts.add(exportProduct);
+		}
+		export.setExportProducts(exportProducts);
+		exportService.saveOrUpdate(export);
+		return "alist";
+	}
+
+	/**
+	 * 电子报运
+	 * 
+	 * @return
+	 * @throws Exception
+	 */
+	public String export() throws Exception {
+		Export export = exportService.get(Export.class, model.getId());
+		String exportJson = FastJsonUtils.toJSONString(export);
+		String result = wsclient.exportE(exportJson);
+		System.out.println(result);
+		Export obj = JSON.parseObject(result, Export.class);
+		exportService.update(obj);
+		return "alist";
+	}
+
+	// 多条件查询功能实现
+	private String khName;
+	private String htNo;
+	private Date jhTime;
+
+	public void setKhName(String khName) {
+		this.khName = khName;
+	}
+
+	public void setHtNo(String htNo) {
+		this.htNo = htNo;
+	}
+
+	public void setJhTime(Date jhTime) {
+		this.jhTime = jhTime;
+	}
+	
+	// 多条件查询功能实现
+	public String paramsSelect() throws Exception {
+		String hql = "from Contract where 1 = 1 ";
+
+		// 加入查询条件
+		if (khName != null && !"".equals(khName.trim())) {
+			hql += " and customName like '%" + khName + "%' ";
+		}
+		if (htNo != null && !"".equals(htNo.trim())) {
+			hql += " and contractNo like '%" + htNo + "%' ";
+		}
+		if (jhTime != null && !"".equals(jhTime.toString().trim())) {
+			// 转换时间格式
+			SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+			String dateStr = dateFormat.format(jhTime);
+			hql += " and to_char(deliveryPeriod,'yyyy-MM-dd') = '" + dateStr + "' ";
+		}
+
+		contractService.findPage(hql, page, Contract.class, null);
+		page.setUrl("exportAction_paramsSelect");
+		super.push(page);
+		return "contractList";
+
+	}
+	
+	// 多条件查询功能实现2
+	public String paramsSelect2() throws Exception {
+		String consignee = model.getConsignee();
+		String transportMode = model.getTransportMode();
+		Date inputDate = model.getInputDate();
+		
+		String hql = "from Export where 1 = 1 ";
+		
+		// 加入查询条件
+		if (consignee != null && !"".equals(consignee.trim())) {
+			hql += " and consignee like '%" + consignee + "%' ";
+		}
+		if (transportMode != null && !"".equals(transportMode.trim())) {
+			hql += " and transportMode like '%" + transportMode + "%' ";
+		}
+		if (inputDate != null && !"".equals(inputDate.toString().trim())) {
+			// 转换时间格式
+			SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+			String dateStr = dateFormat.format(inputDate);
+			hql += " and to_char(inputDate,'yyyy-MM-dd') = '" + dateStr + "' ";
+		}
+		
+		exportService.findPage(hql, page, Export.class, null);
+		page.setUrl("exportAction_paramsSelect");
+		super.push(page);
+		return "list";
+		
+	}
+}

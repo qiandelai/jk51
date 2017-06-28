@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE struts PUBLIC
+	"-//Apache Software Foundation//DTD Struts Configuration 2.3//EN"
+	"http://struts.apache.org/dtds/struts-2.3.dtd">
+<struts>
+	<package name="feedback" namespace="/feedback" extends="default">
+		<action name="feedbackAction_*" method="{1}" class="feedbackAction">
+			<result name="alist" type="redirect">feedbackAction_list</result>
+			<result name="plist">/WEB-INF/pages/home/feedback/jFeedbackListPage.jsp</result>
+			<result name="pcreate">/WEB-INF/pages/home/feedback/jFeedbackCreate.jsp</result>
+			<result name="pupdate">/WEB-INF/pages/home/feedback/jFeedbackUpdate.jsp</result>
+			<result name="pview">/WEB-INF/pages/home/feedback/jFeedbackView.jsp</result>
+		</action>
+	</package>
+</struts>

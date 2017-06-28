@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE struts PUBLIC
+	"-//Apache Software Foundation//DTD Struts Configuration 2.3//EN"
+	"http://struts.apache.org/dtds/struts-2.3.dtd">
+<struts>
+	<package name="board" namespace="/board" extends="default">
+		
+		<!-- <action name="packingListAction_*" method="{1}" class="packingListAction">
+			<result name="alist" type="redirect">packingListAction_list</result>
+			<result name="plist">/WEB-INF/pages/cargo/packinglist/jPackingListList.jsp</result>
+			<result name="pcreate">/WEB-INF/pages/cargo/packinglist/jPackingListCreate.jsp</result>
+			<result name="pupdate">/WEB-INF/pages/cargo/packinglist/jPackingListUpdate.jsp</result>
+			<result name="pview">/WEB-INF/pages/cargo/packinglist/jPackingListView.jsp</result>
+		</action> -->
+		<action name="boardAction_*" method="{1}" class="boardAction">
+			<result name="list">/WEB-INF/pages/board/jBoardList.jsp</result>
+		</action>
+	</package>
+</struts>
